@@ -21,7 +21,7 @@ Once the install for uWebSocketIO is complete, the main program can be built and
 5. ./ExtendedKF
 
 # Results
-Two datasets were given by Udacity. A visulization of the path that the moving object takes is shown below.
+Two datasets were given by Udacity. A visulization of the path that the moving object takes for the two datasets is shown below.
 
 ![alt text][image1]
 
@@ -65,7 +65,7 @@ For both datasets, using both lidar and radar measurements gives a better RSME. 
 
 * Chenxin Wang
 
-Contributions from Udacity
+Thanks for the contributions from Udacity
 
 
 
