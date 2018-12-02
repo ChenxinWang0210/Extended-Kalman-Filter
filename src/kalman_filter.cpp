@@ -1,5 +1,8 @@
 #include "kalman_filter.h"
+#include <iostream>
+#include <math.h>
 
+using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
@@ -25,6 +28,10 @@ void KalmanFilter::Predict() {
   TODO:
     * predict the state
   */
+  x_ = F_ * x_;
+  MatrixXd Ft = F_.transpose();
+  P_ = F_ * P_ * Ft + Q_;
+  
 }
 
 void KalmanFilter::Update(const VectorXd &z) {
@@ -32,6 +39,21 @@ void KalmanFilter::Update(const VectorXd &z) {
   TODO:
     * update the state by using Kalman Filter equations
   */
+  VectorXd y = z-H_*x_;
+  
+  
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  MatrixXd Si = S.inverse();
+  MatrixXd PHt = P_*Ht;
+  MatrixXd K = PHt * Si;
+  
+  // new estimate
+  x_ = x_ + (K * y);
+//   long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(4, 4);
+  P_ = (I-K*H_)*P_;
+  
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
@@ -39,4 +61,59 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
+  float px =x_(0);
+  float py =x_(1);
+  float vx =x_(2);
+  float vy =x_(3);
+  
+  float radius_2 = px*px + py*py;
+  float radius = sqrt(radius_2);
+  
+  // check division by zero
+  if(fabs(radius_2)< 0.0001) 
+  {
+    cout <<"Error - Division by zero in calculating radius_dot" << endl;
+    
+    return;
+    
+  }
+  float radius_dot = (px*vx+py*vy)/radius;
+  
+  float angle = atan2(py,px);  
+  
+  VectorXd y(3);
+  y<< 0, 0, 0;
+  
+  y(0) = z(0) - radius;
+  y(1) = z(1) - angle;
+  y(2) = z(2) - radius_dot;
+  
+  //adjust angle in y so that its value falls in [-pi, pi)
+  
+  // Define a constant PI
+  const float PI = 3.1415927;
+  
+  y(1) = fmod( y(1), 2*PI);
+  if (y(1)<-PI) 
+  {
+    y(1) = y(1)+2*PI;
+  } else if (y(1)>=PI)
+  {
+    y(1) = y(1)-2*PI;
+  }
+  
+  
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  MatrixXd Si = S.inverse();
+  MatrixXd PHt = P_*Ht;
+  MatrixXd K = PHt * Si;
+  
+  // new estimate
+  x_ = x_ + (K * y);
+  MatrixXd I = MatrixXd::Identity(4, 4);
+  P_ = (I-K*H_)*P_;
+  
+ 
+  
 }
